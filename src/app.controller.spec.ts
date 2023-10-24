@@ -15,8 +15,8 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return "Hello nest js for test 4!"', () => {
+      expect(appController.getHello()).toBe('Hello nest js for test 4!');
     });
   });
 });
