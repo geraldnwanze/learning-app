@@ -31,8 +31,6 @@ jobs:
           echo "    env_file: .env" >> docker-compose.yml
           echo "    ports:" >> docker-compose.yml
           echo "      - 3306:3306" >> docker-compose.yml
-          echo "    command: --skip-name-resolve" >> docker-compose.yml
-          echo "    options: --health-cmd=\"mysqladmin ping\" --health-interval=10s --health-timeout=5s --health-retries=3" >> docker-compose.yml
 
           # Create .env file
           echo "MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD" >> .env
