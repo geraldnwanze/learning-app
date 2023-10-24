@@ -25,13 +25,7 @@ jobs:
           echo "    ports:" >> docker-compose.yml
           echo "      - 3306:3306" >> docker-compose.yml
           echo "    options: --health-cmd=\"mysqladmin ping\" --health-interval=10s --health-timeout=5s --health-retries=3" >> docker-compose.yml
-          docker run --rm --name mysql-env-file --env-file <(cat <<EOF
-MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
-MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
-MYSQL_USER=${{ secrets.MYSQL_USER }}
-MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
-EOF
-) alpine:latest
+          docker run --rm --name mysql-env-file --env-file <(cat <<EOF MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} MYSQL_USER=${{ secrets.MYSQL_USER }} MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} EOF ) alpine:latest
           docker-compose up -d
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
