@@ -1,0 +1,58 @@
+name: PR Test on main
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up MySQL with Docker
+        run: |
+          echo "version: '3.4'" >> docker-compose.yml
+          echo "services:" >> docker-compose.yml
+          echo "  mysql:" >> docker-compose.yml
+          echo "    image: mysql:latest" >> docker-compose.yml
+          echo "    env_file: .env" >> docker-compose.yml
+          echo "    ports:" >> docker-compose.yml
+          echo "      - 3306:3306" >> docker-compose.yml
+          echo "    options: --health-cmd=\"mysqladmin ping\" --health-interval=10s --health-timeout=5s --health-retries=3" >> docker-compose.yml
+          docker run --rm --name mysql-env-file --env-file <(cat <<EOF
+MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
+MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+MYSQL_USER=${{ secrets.MYSQL_USER }}
+MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+EOF
+) alpine:latest
+          docker-compose up -d
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Stop and remove Docker containers
+        run: docker-compose down -v
+
+      - name: Cleanup
+        run: |
+          docker system prune -f
