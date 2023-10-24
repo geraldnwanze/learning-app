@@ -1,4 +1,4 @@
-name: PR Test on main
+name: PR Test on Main
 
 on:
   pull_request:
@@ -17,6 +17,13 @@ jobs:
 
       - name: Set up MySQL with Docker
         run: |
+          # Generate random root password
+          MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
+
+          # Generate random user and password
+          MYSQL_USER=your_mysql_user
+          MYSQL_PASSWORD=$(openssl rand -base64 12)
+
           echo "version: '3.4'" >> docker-compose.yml
           echo "services:" >> docker-compose.yml
           echo "  mysql:" >> docker-compose.yml
@@ -24,19 +31,28 @@ jobs:
           echo "    env_file: .env" >> docker-compose.yml
           echo "    ports:" >> docker-compose.yml
           echo "      - 3306:3306" >> docker-compose.yml
+          echo "    command: --skip-name-resolve" >> docker-compose.yml
           echo "    options: --health-cmd=\"mysqladmin ping\" --health-interval=10s --health-timeout=5s --health-retries=3" >> docker-compose.yml
-          docker run --rm --name mysql-env-file --env-file <(cat <<EOF MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} MYSQL_USER=${{ secrets.MYSQL_USER }} MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} EOF ) alpine:latest
+
+          # Create .env file
+          echo "MYSQL_ROOT_PASSWORD=$MYSQL_ROOT_PASSWORD" >> .env
+          echo "MYSQL_DATABASE=your_database_name" >> .env
+          echo "MYSQL_USER=$MYSQL_USER" >> .env
+          echo "MYSQL_PASSWORD=$MYSQL_PASSWORD" >> .env
+          echo "MYSQL_HOST=mysql" >> .env
+          echo "MYSQL_PORT=3306" >> .env
+
           docker-compose up -d
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_DATABASE: your_database_name
+          MYSQL_USER: your_mysql_user
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
 
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: 20
+          node-version: 14
 
       - name: Install dependencies
         run: npm install
